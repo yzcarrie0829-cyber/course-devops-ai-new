@@ -64,6 +64,7 @@
   ```
 - 写入位置：`users/{uid}/chats`；字段：`question`、`answer`、`error`、`createdAt`。
 - 游客模式（`/ui?guest=1`）不写入。
+- 登录后前端自动加载历史消息并按时间排序展示，默认最多 100 条。
 
 **CI/CD（GitHub Actions → Railway）**
 - 工作流：`.github/workflows/main.yml:1-37`，触发 `push` 到 `main`

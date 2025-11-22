@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const GUEST = new URLSearchParams(window.location.search).get('guest') === '1';
 let auth = null;
@@ -22,7 +22,7 @@ const questionInput = document.getElementById('question');
 const sendBtn = document.getElementById('sendBtn');
 const themeToggle = document.getElementById('themeToggle');
 const nowTs = () => new Date().toLocaleTimeString();
-const renderUserMsg = (text) => {
+const renderUserMsg = (text, ts) => {
   const wrap = document.createElement('div');
   wrap.className = 'msg user';
   const bubble = document.createElement('div');
@@ -32,9 +32,30 @@ const renderUserMsg = (text) => {
   t.textContent = text;
   const m = document.createElement('div');
   m.className = 'meta';
-  m.textContent = nowTs();
+  m.textContent = ts || nowTs();
   bubble.appendChild(t);
   bubble.appendChild(m);
+  wrap.appendChild(bubble);
+  messages.appendChild(wrap);
+  messages.scrollTop = messages.scrollHeight;
+};
+const renderBotMsg = (text, ts) => {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = 'AI';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  const t = document.createElement('div');
+  t.className = 'text';
+  t.textContent = text;
+  const m = document.createElement('div');
+  m.className = 'meta';
+  m.textContent = ts || nowTs();
+  bubble.appendChild(t);
+  bubble.appendChild(m);
+  wrap.appendChild(avatar);
   wrap.appendChild(bubble);
   messages.appendChild(wrap);
   messages.scrollTop = messages.scrollHeight;
@@ -118,6 +139,7 @@ if (GUEST) {
       userSpan.textContent = user.email || user.uid;
       authView.classList.add('hidden');
       chatView.classList.remove('hidden');
+      loadHistory();
     } else {
       userSpan.textContent = '';
       chatView.classList.add('hidden');
@@ -159,3 +181,20 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
   sendBtn.textContent = '发送';
   questionInput.disabled = false;
 });
+const loadHistory = async () => {
+  if (!auth || !auth.currentUser || !db) return;
+  messages.innerHTML = '';
+  const uid = auth.currentUser.uid;
+  const col = collection(db, 'users', uid, 'chats');
+  const q = query(col, orderBy('createdAt', 'asc'), limit(100));
+  try {
+    const snap = await getDocs(q);
+    snap.forEach(doc => {
+      const d = doc.data() || {};
+      const ts = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleTimeString() : nowTs();
+      if (d.question) renderUserMsg(d.question, ts);
+      const text = d.answer || d.error || '';
+      if (text) renderBotMsg(text, ts);
+    });
+  } catch {}
+};
