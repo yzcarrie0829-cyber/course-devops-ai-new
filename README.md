@@ -1,4 +1,4 @@
-# RAG 应用 — GitHub Actions + Railway 自动化部署-
+# RAG 应用 — GitHub Actions + Railway 自动化部署
 
 本项目是一个基于 FastAPI 的检索增强生成（RAG）应用，包含前端 Web UI（Firebase 登录），并通过 GitHub Actions + Railway 实现 CI/CD：构建 Docker、运行测试、自动部署。
 
