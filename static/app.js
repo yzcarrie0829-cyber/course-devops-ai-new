@@ -6,7 +6,15 @@ const GUEST = new URLSearchParams(window.location.search).get('guest') === '1';
 let auth = null;
 let db = null;
 if (!GUEST) {
-  const cfg = await fetch('/firebase-config').then(r => r.json());
+  const firebaseConfig = {
+  apiKey: "AIzaSyDDaFK_pfFr0K-XBUzGT11EyrOi_k9aFfo",
+  authDomain: "ragclassid123.firebaseapp.com",
+  projectId: "ragclassid123",
+  storageBucket: "ragclassid123.firebasestorage.app",
+  messagingSenderId: "96419741792",
+  appId: "1:96419741792:web:5fe5ba428c5c34779f8305",
+  measurementId: "G-3JLLXJ8QFT"
+};
   const app = initializeApp(cfg);
   auth = getAuth(app);
   db = getFirestore(app);
